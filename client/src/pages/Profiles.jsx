@@ -9,12 +9,14 @@ import {
   Paper,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
 import { Bar, Chart, Line } from "react-chartjs-2";
 import { Link } from "../components/StyledComp";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
+import { CameraAlt as CameraAltIcon, Edit } from "@mui/icons-material";
 import {
   Chart as ChartJS,
   BarElement,
@@ -31,6 +33,8 @@ import { use } from "react";
 import problems from "../fakeData/problems";
 import { useSelector } from "react-redux";
 import { VisuallyHiddenInput } from "../components/helper/Styled";
+import toast from "react-hot-toast";
+import LanguageModal from "../components/LanguageModel";
 
 ChartJS.register(
   BarElement,
@@ -48,6 +52,9 @@ function Profiles() {
   const avatarUrl = useSelector((state) => state.auth.user.avatarUrl);
   const [userData, setUserData] = useState({});
   const [avatar, setAvatar] = useState(avatarUrl);
+  const [loading,setLoading] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -70,28 +77,38 @@ function Profiles() {
   const dateStr = userData.createdAt;
   const date = new Date(dateStr);
   const formattedDate = date.toLocaleDateString();
-  const handleAvatar = async(e) => {
+  const handleAvatar = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append("avatar", file);
-    try{
+    try {
+      setLoading(true);
       const config = {
         withCredentials: true,
-        headers:{
-          "Content-Type":"multipart/form-data"
-        }
-      }
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
 
-      const result = await axios.post("http://localhost:4000/user/upload-avatar",formData,config);
+      const result = await axios.post(
+        "http://localhost:4000/user/upload-avatar",
+        formData,
+        config
+      );
       console.log(result);
-      if(result.data.success){
+      if (result.data.success) {
+        setLoading(false);
         console.log(result.data.avatarUrl);
+        toast.success('Profile picture updated successfully');
         setAvatar(result.data.avatarUrl);
+        window.location.reload();
       }
-    }catch(error){
+    } catch (error) {
       console.log("Error uploading avatar:", error);
     }
   };
+  
+  
 
   const attemptData = userData.attempts;
   const daysAgo = (days) => {
@@ -201,9 +218,9 @@ function Profiles() {
       <Grid2 container spacing={3} sx={{ margin: "auto", marginTop: "10px" }}>
         <Grid2
           bgcolor={"#1A2B4A"}
-          size={{ xs: 6, md: 3 }}
+          size={{ xs: 12, md: 3 }}
           sx={{
-            height: "calc(100vh - 64px)",
+            height: isMobile ? "auto" : "calc(100vh - 64px)",
             borderRadius: "10px",
             display: "flex",
             flexDirection: "column",
@@ -221,8 +238,11 @@ function Profiles() {
             }}
           >
             <form>
-            <Stack position="relative" width="10rem" margin="auto">
-                <Avatar sx={{ width: "10rem", height: "10rem", objectFit: 'contain' }} src={avatar}></Avatar>
+              <Stack position="relative" width="10rem" margin="auto">
+                <Avatar
+                  sx={{ width: "10rem", height: "10rem", objectFit: "contain" }}
+                  src={loading ? `https://lottiefiles.com/free-animation/loading-Ymt2HaA2pc` : avatar}
+                ></Avatar>
                 <IconButton
                   sx={{
                     position: "absolute",
@@ -237,7 +257,10 @@ function Profiles() {
                   component="label"
                 >
                   <CameraAltIcon />
-                  <VisuallyHiddenInput type="file" onChange={handleAvatar}></VisuallyHiddenInput>
+                  <VisuallyHiddenInput
+                    type="file"
+                    onChange={handleAvatar}
+                  ></VisuallyHiddenInput>
                 </IconButton>
               </Stack>
             </form>
@@ -272,68 +295,43 @@ function Profiles() {
             >
               Total Solved : {userData.problemSolved?.length}
             </Typography>
-            <Typography
-              sx={{
-                fontSize: "15px",
-                color: "white",
-                marginLeft: "10%",
-                marginTop: "10px",
-                display: "flex",
-                gap: "10px",
-              }}
-            >
-              Languages :
-            </Typography>
-            <ul
-              style={{
-                listStyleType: "none",
-                color: "white",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                gap: "10px",
-                marginLeft: "20%",
-                marginTop: "10px",
-              }}
-            >
-              <li
-                style={{
-                  backgroundColor: "#2c3e5d",
-                  padding: "5px",
-                  borderRadius: "50px",
-                  width: "100px",
-                  textAlign: "center",
+
+            <Box sx={{ display: "flex",justifyContent:'space-between' }}>
+              <Typography
+                sx={{
+                  fontSize: "18px",
+                  color: "white",
+                  marginLeft: "10%",
+                  marginTop: "10px",
+                  display: "flex",
+                  gap: "10px",
                 }}
               >
-                Python
-              </li>
-              <li
-                style={{
-                  backgroundColor: "#2c3e5d",
-                  padding: "5px",
-                  borderRadius: "50px",
-                  width: "100px",
-                  textAlign: "center",
-                }}
-              >
-                C++
-              </li>
-              <li
-                style={{
-                  backgroundColor: "#2c3e5d",
-                  padding: "5px",
-                  borderRadius: "50px",
-                  width: "100px",
-                  textAlign: "center",
-                }}
-              >
-                Java
-              </li>
-            </ul>
+                Languages:
+              </Typography>
+              <LanguageModal></LanguageModal>
+            </Box>
+            {
+              userData.languages?.map((language) => {
+                return (
+                  <Paper key={language} sx={{bgcolor:'white',width:'80%',margin:'auto',marginBottom:'10px',padding:'4px',borderRadius:'20px'}}>
+                    <Typography
+                      sx={{
+                        fontSize: "15px",
+                        marginLeft: "10%",
+                        color:"black",
+                      }}
+                    >
+                      {language}
+                    </Typography>
+                  </Paper>
+                )
+              })
+            }
           </Box>
         </Grid2>
         <Grid2
-          size={{ xs: 6, md: 9 }}
+          size={{ xs: 12, md: 9 }}
           sx={{
             height: "calc(100vh - 64px)",
             overflowY: "scroll",

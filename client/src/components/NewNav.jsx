@@ -59,7 +59,7 @@ function NewNav({setLanguage,language}) {
         </FormControl>
       </Box>
       <Box>
-        <IconButton onClick={handleSettings}>
+        {/* <IconButton onClick={handleSettings}>
           <SettingsIcon sx={{ color: "rgb(112, 112, 112)" }} />
         </IconButton>
         <IconButton onClick={() => setFullScreen(!fullScreen)}>
@@ -68,7 +68,7 @@ function NewNav({setLanguage,language}) {
           ) : (
             <FullscreenIcon sx={{ color: "rgb(112, 112, 112)" }} />
           )}
-        </IconButton>
+        </IconButton> */}
       </Box>
     </Box>
   );

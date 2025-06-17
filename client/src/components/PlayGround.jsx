@@ -9,21 +9,28 @@ import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import { useParams } from "react-router";
 import { useSelector } from "react-redux";
+import Loader from "./loader/Loader";
 
 function PlayGround({ tesTCases }) {
   const { problemId } = useParams();
 
-  const userId = useSelector(state => state.auth.user._id);
+  const userId = useSelector((state) => state.auth.user._id);
 
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
     return savedLanguage || "javascript";
   });
 
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(()=>{
+    const savedCode = localStorage.getItem("code");
+    return savedCode || "";
+  });
   const [failed, setFailed] = useState(false);
   const [testCases, setTestCases] = useState(tesTCases);
-  const [story,setStory] = useState("");
+  const [story, setStory] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  console.log(testCases);
 
   const monaco = useMonaco();
 
@@ -59,6 +66,7 @@ function PlayGround({ tesTCases }) {
 
   const handleCodeChange = (value) => {
     setCode(value);
+    localStorage.setItem("code", value);
   };
 
   const language_id = {
@@ -81,75 +89,81 @@ function PlayGround({ tesTCases }) {
 
   useEffect(() => {
     setFailed(false);
-  },[code])
-
+  }, [code]);
 
   const data = {
-    language_id:language_id[language],
-    base64EncodedCode:base64EncodedCode,
-    problemId:problemId
-  }
+    language_id: language_id[language],
+    base64EncodedCode: base64EncodedCode,
+    problemId: problemId,
+  };
 
-  const handleRunCode = async() => {
+  const handleRunCode = async () => {
     const config = {
       withCredentials: true,
       header: { "Content-Type": "application/json" },
-    }
-    try{
-      const res = await axios.post('http://localhost:4000/user/getSubmission',data,config);
+    };
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/user/getSubmission",
+        data,
+        config
+      );
       console.log(res);
-      const {updatedTestCases,results,hasFailure,failureStatus} = res.data;
+      const { updatedTestCases, results, hasFailure, failureStatus } = res.data;
 
       setTestCases(updatedTestCases);
       setFailed(hasFailure);
       setStory(failureStatus);
 
       return results;
-    }catch(error){
+    } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const setAttempt = async () => {
     try {
-     const finalResult = await handleRunCode();
-     console.log(finalResult);
-     let story = "Accepted";
-     finalResult.some((result) => {
-       if (result.status !== "Accepted") {
+      setLoading(true);
+      const finalResult = await handleRunCode();
+      console.log(finalResult);
+      let story = "Accepted";
+      finalResult.some((result) => {
+        if (result.status !== "Accepted") {
           story = result.status;
-       }
-     })
-      console.log("Story after handleRunCode:", story); 
-  
+        }
+      });
+      console.log("Story after handleRunCode:", story);
+
       const config = {
         withCredentials: true,
         header: { "Content-Type": "application/json" },
       };
-  
+
       const { data } = await axios.post(
         "http://localhost:4000/user/judge0-callback",
         { story, problemId, userId },
         config
       );
       console.log(data);
+      setLoading(false);
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
 
-  const getSubmission = async () =>{
-    try{
-      const config = {
-        withCredentials: true,
-        header: { "Content-Type": "application/json" },
-      };
-      const data = await axios.get('http://localhost:4000/user/getSubmission',{userId,problemId},config);
-      console.log(data);
-    }catch(error){
-      console.log(error);
-    }
-  }
+  // const getSubmission = async () =>{
+  //   try{
+  //     const config = {
+  //       withCredentials: true,
+  //       header: { "Content-Type": "application/json" },
+  //     };
+  //     const data = await axios.get('http://localhost:4000/user/getSubmission',{userId,problemId},config);
+  //     console.log(data);
+  //   }catch(error){
+  //     console.log(error);
+  //   }
+  // }
 
   const getColor = (status) => {
     switch (status) {
@@ -170,9 +184,16 @@ function PlayGround({ tesTCases }) {
     }
   };
 
-  const firstThree = testCases.slice(0, 3);
+  const firstThree = testCases?.slice(0, 3);
+  console.log(firstThree);
 
-  return (
+  // const handleEditorDidMount = (editor, monacoInstance) => {
+  //   console.log("Editor Mounted:", editor);
+  // };
+
+  return loading ? (
+    <Loader/>
+  ) : (
     <div
       style={{
         display: "flex",
@@ -184,8 +205,28 @@ function PlayGround({ tesTCases }) {
     >
       <NewNav setLanguage={setLanguage} language={language} />
       <Box sx={{ display: "flex", justifyContent: "space-evenly" }}>
-        <Button onClick={handleRunCode}>Run Code</Button>
-        <Button onClick={setAttempt}>Submit</Button>
+        <Button
+          sx={{
+            backgroundColor: "#2c3e5d",
+            px: 3,
+            marginBottom: 2,
+            color: "white",
+          }}
+          onClick={handleRunCode}
+        >
+          Run Code
+        </Button>
+        <Button
+          sx={{
+            backgroundColor: "#2c3e5d",
+            px: 3,
+            marginBottom: 2,
+            color: "white",
+          }}
+          onClick={setAttempt}
+        >
+          Submit
+        </Button>
       </Box>
 
       <Split
@@ -197,7 +238,7 @@ function PlayGround({ tesTCases }) {
           <Editor
             height="100%"
             language={language}
-            defaultValue="// Write your code here"
+            defaultValue={code == "" ? "// Write your code here..." : code}
             onMount={handleEditorDidMount}
             theme="custom-dark"
             onChange={handleCodeChange}
@@ -230,9 +271,9 @@ function PlayGround({ tesTCases }) {
             </Typography>
           </Paper>
           <Box display={"flex"} gap={3} mt={3}>
-            {firstThree.map((test) => (
+            {firstThree?.map((test) => (
               <Box
-                key={test.id}
+                key={test.id ? test.id : test?._doc?.id}
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -241,11 +282,13 @@ function PlayGround({ tesTCases }) {
                 }}
               >
                 <TaskAltRoundedIcon />
-                <Typography>{`Case ${test.id}`}</Typography>
+                <Typography>{`Case ${
+                  test.id ? test.id : test?._doc?.id
+                }`}</Typography>
               </Box>
             ))}
             <Box>
-              <Typography sx={{color:getColor(story)}}>{story}</Typography>
+              <Typography sx={{ color: getColor(story) }}>{story}</Typography>
             </Box>
           </Box>
         </Box>

@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState, useRef } from "react";
-import { Box, Grid, Grid2, IconButton, Stack } from "@mui/material";
+import { Box, Grid, Grid2, IconButton, Stack, useMediaQuery, useTheme } from "@mui/material";
 import { io } from "socket.io-client";
 import SendIcon from "@mui/icons-material/Send";
 import NavBar from "../components/NavBar";
@@ -20,6 +20,8 @@ function Discuss() {
   const [loader, setLoader] = useState(true);
   const containerRef = useRef(null); //In leamon terms ref is a container that do not change its value on changing the state
   const socketRef = useRef(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     console.log(containerRef);
@@ -99,16 +101,16 @@ function Discuss() {
         <Grid2
           item
           size={{ xs: 6, md: 3 }}
-          sx={{ backgroundColor: "#1A2B4A", borderRadius: "10px" }}
+          sx={{ backgroundColor: "#1A2B4A", borderRadius: "10px",display:isMobile ? 'none' : 'block' }}
         >
           <User userData={user} />
         </Grid2>
         {loader ? (
-          <Loader></Loader>
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}><Loader /></Box>
         ) : (
           <Grid2
             item
-            size={{ xs: 6, md: 9 }}
+            size={{ xs: 12, md: 9 }}
             sx={{
               display: "flex",
               flexDirection: "column",

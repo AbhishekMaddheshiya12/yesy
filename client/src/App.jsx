@@ -8,16 +8,19 @@ const Home = React.lazy(() => import("./pages/Home"));
 const ProblemTable = React.lazy(() => import("./components/ProblemTable"));
 const Solution = React.lazy(() => import("./pages/Solution"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
-const Profiles = React.lazy(() => import("./pages/Profiles.jsx"))
-const AboutUs = React.lazy(() => import("./pages/AboutUs.jsx"))
-const Discuss = React.lazy(() => import("./pages/Discuss.jsx"))
+const Profiles = React.lazy(() => import("./pages/Profiles.jsx"));
+const AboutUs = React.lazy(() => import("./pages/AboutUs.jsx"));
+const Discuss = React.lazy(() => import("./pages/Discuss.jsx"));
 import ProtectedComponent from "./components/auth/ProtectedComponent.jsx";
 import problems from "./fakeData/problems.js";
 import Loader from "./components/loader/Loader.jsx";
 const HomePage = React.lazy(() => import("./pages/HomePage.jsx"));
+import { Toaster } from "react-hot-toast";
+import Options from "./components/Options.jsx";
+import LanguageModal from "./components/LanguageModel.jsx";
 
 function App() {
-  const [authChecked,setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   useEffect(() => {
@@ -32,44 +35,61 @@ function App() {
         dispatch(userExist(data.data.user));
       } catch (error) {
         console.log(error);
-        dispatch(userNotExist())
-      } finally{
+        dispatch(userNotExist());
+      } finally {
         setAuthChecked(true);
       }
     };
     getDetails();
   }, [dispatch]);
   return (
-    <Suspense fallback = {<Loader></Loader>}>
-      <Routes>
-      <Route element={<ProtectedComponent user={user} authChecked={authChecked}></ProtectedComponent>}>
-        <Route path="/home" element={<Home />} />
-        <Route
-          path="/problems/:problemId"
-          problems={problems}
-          element={<Solution />}
-        />
-        <Route path="/problems" element={<ProblemTable />} />
-        <Route path="/profile" element={<Profiles></Profiles>}></Route>
-        <Route path="/aboutUs" element={<AboutUs></AboutUs>}></Route>
-        <Route path="/discuss" element={<Discuss></Discuss>}></Route>
-      </Route>
-      <Route
-        path="/"
-        element={
-          <ProtectedComponent user={!user} authChecked={authChecked} redirect="/home">
-            <HomePage />
-          </ProtectedComponent>
-        }
-      />
-      <Route
-        path="/authentication"
-        element={<ProtectedComponent user={!user} authChecked={authChecked}>
-          <LandingPage />
-        </ProtectedComponent>}
-      ></Route>
-    </Routes>
-    </Suspense>
+    <div>
+      <Suspense fallback={<Loader></Loader>}>
+        <Routes>
+          <Route
+            element={
+              <ProtectedComponent
+                user={user}
+                authChecked={authChecked}
+              ></ProtectedComponent>
+            }
+          >
+            <Route path="/home" element={<Home />} />
+            <Route
+              path="/problems/:problemId"
+              problems={problems}
+              element={<Solution />}
+            />
+            <Route path="/problems" element={<ProblemTable />} />
+            <Route path="/profile" element={<Profiles></Profiles>}></Route>
+            <Route path="/aboutUs" element={<AboutUs></AboutUs>}></Route>
+            <Route path="/discuss" element={<Discuss></Discuss>}></Route>
+            <Route path="/options" element={<LanguageModal></LanguageModal>}></Route>
+          </Route>
+          <Route
+            path="/"
+            element={
+              <ProtectedComponent
+                user={!user}
+                authChecked={authChecked}
+                redirect="/home"
+              >
+                <HomePage />
+              </ProtectedComponent>
+            }
+          />
+          <Route
+            path="/authentication"
+            element={
+              <ProtectedComponent user={!user} authChecked={authChecked}>
+                <LandingPage />
+              </ProtectedComponent>
+            }
+          ></Route>
+        </Routes>
+      </Suspense>
+      <Toaster position="top-right"></Toaster>
+    </div>
   );
 }
 

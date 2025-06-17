@@ -8,6 +8,8 @@ import {
   Grid2,
   Paper,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React from "react";
 import ProblemTable from "../components/ProblemTable";
@@ -19,57 +21,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { userExist } from "../redux/reducers/auth";
 
 function Home() {
+  const theme = useTheme();
+  const isMoblie = useMediaQuery(theme.breakpoints.down("md"));
   const user = useSelector(state => state.auth.user);
   console.log(user);
   return (
-    <Box sx={{height: '100vh' ,background: "linear-gradient(135deg,rgb(90, 103, 130) 40%,rgb(255, 255, 255) 100%)"}}>
+    <Box sx={{height: isMoblie ? 'auto' : '100vh' ,background: "linear-gradient(135deg,rgb(90, 103, 130) 40%,rgb(255, 255, 255) 100%)"}}>
       <Box sx={{}}>
         <NavBar></NavBar>
       </Box>
-      <Box sx={{maxWidth: '80%',margin:'auto'}}>
+      <Box sx={{maxWidth: isMoblie ? 'auto' : '80%',margin:'auto',overflowY:"hidden",overflowX:""}}>
       <Grid2 container spacing={2}>
         <Grid2 size={{ xs: 12, md: 9 }}>
-          {/* <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
-            {cards.map((card) => {
-              return (
-                <Card
-                  key={Math.random()}
-                  sx={{
-                    width: "250px",
-                    margin: "10px",
-                    padding: "10px",
-                    backgroundColor: "#1A2B4A",
-                    borderRadius: 3,
-                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
-                    transition: "transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
-                    },
-                  }}
-                >
-                  <CardActionArea>
-                    <CardMedia
-                      component="img"
-                      height="100"
-                      image={Image1}
-                      alt="green iguana"
-                    />
-                    <CardContent>
-                      <Typography>Top 50 Problems</Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              );
-            })}
-          </div> */}
-
           <Paper>
           <div
             style={{ position: "relative", margin: "auto", marginTop: "20px" }}
