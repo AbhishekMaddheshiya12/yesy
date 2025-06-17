@@ -1,5 +1,7 @@
 import axios from "axios";
-import problems from "../fakeData/problems.js";
+// import problems from "../fakeData/problems.js";
+import { Problem } from "../models/problems.js";
+import { User } from "../models/user.js";
 
 const encodeBase64 = (str) => {
   return btoa(
@@ -7,6 +9,15 @@ const encodeBase64 = (str) => {
       .encode(str)
       .reduce((data, byte) => data + String.fromCharCode(byte), "")
   );
+};
+const getAllProblem = async (req, res) => {
+  try {
+    const problems = await Problem.find({});
+    // console.log(problems);
+    return res.status(200).json(problems);
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
 };
 
 const getSubmissionResult = async (tokens) => {
@@ -97,6 +108,7 @@ const judgeSubmission = async (req, res) => {
         message: "Not enough data",
       });
     }
+    const problems = await Problem.find({});
     const problemdata = problems.find((problem) => problem.id == problemId);
     const testCases = problemdata.testCases;
 
@@ -162,4 +174,185 @@ const judgeSubmission = async (req, res) => {
   }
 };
 
-export { judgeSubmission };
+const handleLikes = async (req, res) => {
+  try {
+    const userId = req.user;
+    const problemId = req.params.problemId;
+
+    const problem = await Problem.findById(problemId);
+
+    if (!problem) {
+      return res.status(400).json({
+        success: false,
+        message: "Problem Not Found",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+
+    if (problem.likes.includes(userId)) {
+      const index = problem.likes.indexOf(userId);
+      problem.likes.splice(index, 1);
+      await problem.save();
+      return res.status(200).json({
+        success: true,
+        message: "Problem Unliked Successfully",
+      });
+    }
+
+    problem.likes.push(userId);
+    await problem.save();
+    return res.status(200).json({
+      success: true,
+      message: "Problem Liked Successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const handleDislikes = async (req, res) => {
+  try {
+    const userId = req.user;
+    const problemId = req.params.problemId;
+
+    const problem = await Problem.findById(problemId);
+
+    if (!problem) {
+      return res.status(400).json({
+        success: false,
+        message: "Problem Not Found",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+
+    if (problem.dislikes.includes(userId)) {
+      const index = problem.dislikes.indexOf(userId);
+      problem.dislikes.splice(index, 1);
+      await problem.save();
+      return res.status(200).json({
+        success: true,
+        message: "Problem Undisliked Successfully",
+      });
+    }
+
+    problem.dislikes.push(userId);
+    await problem.save();
+    return res.status(200).json({
+      success: true,
+      message: "Problem Disliked Successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getSpecificProblem = async (req, res) => {
+  try {
+    const problemId = req.params.problemId;
+    const problem = await Problem.find({ id: problemId });
+    return res.status(200).json({
+      success: true,
+      problem,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getLikes = async (req, res) => {
+  try {
+    const problemId = req.params.problemId;
+    const userId = req.user;
+
+    const problem = await Problem.findOne({ id: problemId }); 
+
+    if (!problem) {
+      return res.status(400).json({
+        success: false,
+        message: "Problem Not Found",
+      });
+    }
+
+    const likes = problem.likes?.length || 0;
+    const dislikes = problem.dislikes?.length || 0;
+    const userLike = problem.likes.includes(userId);
+    const userDislike = problem.dislikes.includes(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Likes Fetched Successfully",
+      likes,
+      dislikes,
+      userLike,
+      userDislike,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getSolved = async (req, res) => {
+  try {
+    const problemId = req.params.problemId;
+    const userId = req.user;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    const isSolved = user.problemSolved?.some(id => id.toString() === problemId);
+
+    return res.status(200).json({
+      success: true,
+      message: isSolved ? "Problem Solved" : "Problem Not Solved",
+      solved: isSolved,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export {
+  judgeSubmission,
+  getAllProblem,
+  handleLikes,
+  handleDislikes,
+  getSpecificProblem,
+  getLikes,
+  getSolved
+};

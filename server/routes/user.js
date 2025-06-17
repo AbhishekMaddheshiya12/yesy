@@ -1,7 +1,7 @@
 import express from 'express'
 import { login,setAttempt, SignUp,getSubmission, Logout } from '../controllers/auth.js';
 import authMiddleware from '../middlewares/auth.js';
-import { getMessage, getUserDetails, myDetails, uploadAvatar } from '../controllers/user.js';
+import { getMessage, getUserDetails, myDetails, updateLanguages, uploadAvatar } from '../controllers/user.js';
 import { judgeSubmission } from '../controllers/problems.js';
 import { multerUploads } from '../middlewares/multer.js';
 
@@ -17,6 +17,7 @@ router.get('/logout',authMiddleware,Logout);
 router.get('/getMessages/:page',getMessage);
 router.post('/getSubmission',judgeSubmission)
 router.post("/upload-avatar", authMiddleware,multerUploads.single("avatar"), uploadAvatar);
+router.post('/updateLanguages',authMiddleware,updateLanguages);
 
 
 export default router;

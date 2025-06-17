@@ -37,6 +37,12 @@ const problemSchema = new mongoose.Schema(
         input:String,
         expectedOutput:String,
        }],
+       category:{
+        type:String,
+       },
+       solution:{
+        type:String,
+       }
     },
     {
     timestamps:true

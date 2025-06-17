@@ -6,7 +6,7 @@ import { User } from "../models/user.js";
 const getUserDetails = async(req,res) => {
     try{
       const {userId} = req.params;
-      console.log(userId);
+      // console.log(userId);
       const user = await User.findById(userId);
       if(!user){
         return res.status(400).json({
@@ -31,7 +31,7 @@ const getUserDetails = async(req,res) => {
   const myDetails = async(req,res) => {
     try{
       const userId = req.user;
-      console.log(userId);
+      // console.log(userId);
       const user = await User.findById(userId);
       if(!user){
         return res.status(400).json({
@@ -74,7 +74,7 @@ const getUserDetails = async(req,res) => {
   const uploadAvatar = async(req,res) => {
     try{
       const userId = req.user;
-      console.log(userId);
+      // console.log(userId);
       const user = await User.findById(userId);
       console.log(user);
       if(!req.file){
@@ -102,4 +102,33 @@ const getUserDetails = async(req,res) => {
     }
   }
 
-export {getUserDetails,myDetails,getMessage,uploadAvatar};
+  const updateLanguages = async(req,res) =>{
+    try{
+      console.log("count 1");
+      const userId = req.user;
+      const {languages} = req.body;
+
+      const user = await User.findById(userId);
+      if(!user){
+        return res.status(400).json({
+          success:false,
+          message:"User Not Found"
+        })
+      }
+
+      user.languages = languages;
+      await user.save();
+
+      return res.status(200).json({
+        success:true,
+        message:"Languages Updated Successfully"
+      })
+    }catch(error){
+      return res.status(400).json({
+        success:false,
+        message:error.message
+      })
+    }
+  }
+
+export {getUserDetails,myDetails,getMessage,uploadAvatar,updateLanguages};

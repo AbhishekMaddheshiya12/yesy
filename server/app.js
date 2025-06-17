@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { dbConnect } from "./config/database.js";
 import userRouter from "./routes/user.js";
+import problemRouter from "./routes/problems.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { corsOption } from "./constants/config.js";
@@ -11,6 +12,8 @@ import { Message } from "./models/messages.js";
 const app = express();
 const server = createServer(app);
 const io = new Server(server, { cors: corsOption });
+import { seedDatabase } from "./fakeData/helper.js";
+// seedDatabase();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -69,6 +72,7 @@ io.on("connection", (socket) => {
 });
 
 app.use("/user", userRouter);
+app.use("/problems", problemRouter);
 
 dbConnect();
 
