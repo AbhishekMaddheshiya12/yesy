@@ -4,7 +4,7 @@ import problems from "./problems.js";
 export const seedDatabase = async () => {
     try {
       await Problem.deleteMany({});
-      console.log("🧹 Old problems removed");
+      console.log("Old problems removed");
   
       const cleanedProblems = problems.map((problem) => {
         const { likes, dislikes, ...rest } = problem;
@@ -12,9 +12,9 @@ export const seedDatabase = async () => {
       });
   
       const inserted = await Problem.insertMany(cleanedProblems);
-      console.log(`🌱 Seeded ${inserted.length} problems to the database`);
+      console.log(`Seeded ${inserted.length} problems to the database`);
     } catch (error) {
-      console.error("❌ Error seeding problems:", error);
+      console.error("Error seeding problems:", error);
     }
   };
   

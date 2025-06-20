@@ -114,7 +114,7 @@ const Logout = async (req, res) => {
 const setAttempt = async (req, res) => {
   try {
     const { story, problemId, userId } = req.body;
-    console.log(story, problemId, userId);
+    // console.log(story, problemId, userId);
     const user = await User.findById(userId);
     const attemptCount = user.attempts.length;
     user.attempts.push({
@@ -124,7 +124,7 @@ const setAttempt = async (req, res) => {
       lastAttempt: Date.now(),
     });
     await user.save();
-    console.log(typeof problemId);
+    // console.log(typeof problemId);
     if (story == "Accepted") {
       if (!user.problemSolved.includes(problemId)) {
         user.problemSolved.push(problemId);
@@ -143,7 +143,7 @@ const setAttempt = async (req, res) => {
 const getSubmission = async (req, res) => {
   try {
     const { userId, problemId } = req.params;
-    console.log(userId, problemId);
+    // console.log(userId, problemId);
     const user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({

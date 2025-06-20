@@ -9,13 +9,13 @@ cloudinary.config({
 });
 
 const uploadImage = async (image) => {
-console.log(image);
+// console.log(image);
   try {
     const result = await cloudinary.uploader.upload(image,{
         folder:"CodeCraft",
         resource_type:"auto"
     });
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (error) {
     console.error("Cloudinary upload failed:", error);

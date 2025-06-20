@@ -2,6 +2,8 @@ import axios from "axios";
 // import problems from "../fakeData/problems.js";
 import { Problem } from "../models/problems.js";
 import { User } from "../models/user.js";
+import { model } from "mongoose";
+import { GoogleGenAI } from "@google/genai";
 
 const encodeBase64 = (str) => {
   return btoa(
@@ -68,12 +70,12 @@ const getSubmissionResult = async (tokens) => {
       }
     });
 
-    console.log("Processed Results:", results);
+    // console.log("Processed Results:", results);
 
     if (processingTokens.length > 0) {
-      console.log(
-        `Retrying for ${processingTokens.length} submissions still processing...`
-      );
+      // console.log(
+      //   `Retrying for ${processingTokens.length} submissions still processing...`
+      // );
       const retryResults = await getSubmissionResult(processingTokens);
       results.push(...(retryResults.results || []));
 
@@ -83,7 +85,7 @@ const getSubmissionResult = async (tokens) => {
       }
     }
 
-    console.log("Final Results:", results);
+    // console.log("Final Results:", results);
     return {
       results,
       hasFailure,
@@ -137,15 +139,15 @@ const judgeSubmission = async (req, res) => {
     };
 
     const response = await axios.request(options);
-    console.log("Batch Submission Response:", response.data);
+    // console.log("Batch Submission Response:", response.data);
 
     if (response.data) {
       const tokens = response.data.map((submission) => submission.token);
       console.log(tokens);
       const finalResult = await getSubmissionResult(tokens);
       const { results, hasFailure, failureStatus } = finalResult;
-      console.log(finalResult);
-      console.log("Your father is checking your report" + results);
+      // console.log(finalResult);
+      // console.log("Your father is checking your report" + results);
 
       const updatedTestCases = testCases.map((testCase, index) => ({
         ...testCase,
@@ -347,6 +349,37 @@ const getSolved = async (req, res) => {
   }
 };
 
+const analysis = async(req,res) => {
+  try{
+    const code = req.body.code;
+    if(!code){
+      return res.status(400).json({
+        success:false,
+        message:"Plz give me the code"
+      })
+    }
+    const ai = new GoogleGenAI({apiKey:process.env.GOOGLE_API_KEY});
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Analyze the time and space complexity of the following code and reply with little explanation withhighlighted complexities in 90 words and not more than 3 lines first line time complexity second line space complexity and third line is explation and all there are in not markdown :\n\n${code}`
+    })
+
+    console.log(response.text);
+
+    return res.status(200).json({
+      success:true,
+      message:"Analysis done",
+      analysis:response.text
+    })
+  }catch(error){
+    return res.status(400).json({
+      success:false,
+      message:error.message
+    })
+  }
+}
+
 export {
   judgeSubmission,
   getAllProblem,
@@ -354,5 +387,6 @@ export {
   handleDislikes,
   getSpecificProblem,
   getLikes,
-  getSolved
+  getSolved,
+  analysis
 };

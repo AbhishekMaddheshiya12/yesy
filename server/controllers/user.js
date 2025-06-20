@@ -76,16 +76,16 @@ const getUserDetails = async(req,res) => {
       const userId = req.user;
       // console.log(userId);
       const user = await User.findById(userId);
-      console.log(user);
+      // console.log(user);
       if(!req.file){
         return res.status(400).json({
           success:false,
           message:"No file uploaded"
         })
       }
-      console.log("Hello");
+      // console.log("Hello");
       const result = await uploadImage(getBase64(req.file));
-      console.log(result);
+      // console.log(result);
       user.avatarUrl = result.secure_url;
       await user.save();
       return res.status(200).json({
@@ -104,7 +104,7 @@ const getUserDetails = async(req,res) => {
 
   const updateLanguages = async(req,res) =>{
     try{
-      console.log("count 1");
+      // console.log("count 1");
       const userId = req.user;
       const {languages} = req.body;
 

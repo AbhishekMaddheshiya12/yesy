@@ -39,7 +39,7 @@ io.use((socket, next) => {
 const NEW_MESSAGE = "message";
 const roomName = "room1";
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  // console.log("A user connected:", socket.id);
   const user = socket.user;
   socket.join(roomName);
   console.log(`${socket.id} joined room: ${roomName}`);
@@ -67,7 +67,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    // console.log("User disconnected:", socket.id);
   });
 });
 
