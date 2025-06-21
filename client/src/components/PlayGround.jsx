@@ -10,6 +10,10 @@ import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import { useParams } from "react-router";
 import { useSelector } from "react-redux";
 import Loader from "./loader/Loader";
+import toast from "react-hot-toast";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import SubmitAnimation from "./loader/SubmitAnimation";
 
 function PlayGround({ tesTCases }) {
   const { problemId } = useParams();
@@ -21,7 +25,7 @@ function PlayGround({ tesTCases }) {
     return savedLanguage || "javascript";
   });
 
-  const [code, setCode] = useState(()=>{
+  const [code, setCode] = useState(() => {
     const savedCode = localStorage.getItem("code");
     return savedCode || "";
   });
@@ -29,6 +33,7 @@ function PlayGround({ tesTCases }) {
   const [testCases, setTestCases] = useState(tesTCases);
   const [story, setStory] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState(null);
 
   console.log(testCases);
 
@@ -103,6 +108,7 @@ function PlayGround({ tesTCases }) {
       header: { "Content-Type": "application/json" },
     };
     try {
+      setLoading(true);
       const res = await axios.post(
         "http://localhost:4000/user/getSubmission",
         data,
@@ -114,10 +120,12 @@ function PlayGround({ tesTCases }) {
       setTestCases(updatedTestCases);
       setFailed(hasFailure);
       setStory(failureStatus);
+      setLoading(false);
 
       return results;
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
 
@@ -151,19 +159,28 @@ function PlayGround({ tesTCases }) {
       setLoading(false);
     }
   };
-
-  // const getSubmission = async () =>{
-  //   try{
-  //     const config = {
-  //       withCredentials: true,
-  //       header: { "Content-Type": "application/json" },
-  //     };
-  //     const data = await axios.get('http://localhost:4000/user/getSubmission',{userId,problemId},config);
-  //     console.log(data);
-  //   }catch(error){
-  //     console.log(error);
-  //   }
-  // }
+  const handleAnalyze = async () => {
+    try {
+      const config = {
+        withCredentials: true,
+        header: { "Content-Type": "application/json" },
+      };
+      setLoading(true);
+      const response = await axios.post(
+        `http://localhost:4000/problems/analyze`,
+        { code },
+        config
+      );
+      console.log(response.data.analysis);
+      setResponse(response.data.analysis);
+      toast.success(response.data.message);
+      setLoading(false);
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error);
+      setLoading(false);
+    }
+  };
 
   const getColor = (status) => {
     switch (status) {
@@ -191,9 +208,7 @@ function PlayGround({ tesTCases }) {
   //   console.log("Editor Mounted:", editor);
   // };
 
-  return loading ? (
-    <Loader/>
-  ) : (
+  return (
     <div
       style={{
         display: "flex",
@@ -254,43 +269,84 @@ function PlayGround({ tesTCases }) {
         >
           <Paper
             sx={{
-              height: "10",
               backgroundColor: "#2c3e5d",
               display: "flex",
-              lineHeight: 1.2,
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2,
             }}
           >
-            <CheckBoxIcon></CheckBoxIcon>
-            <Typography
-              fontWeight={400}
-              color="text.primary"
-              fontSize="1.2rem"
-              textAlign="center"
-            >
-              Testcases:
-            </Typography>
-          </Paper>
-          <Box display={"flex"} gap={3} mt={3}>
-            {firstThree?.map((test) => (
-              <Box
-                key={test.id ? test.id : test?._doc?.id}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  color: getColor(test.status),
-                }}
-              >
-                <TaskAltRoundedIcon />
-                <Typography>{`Case ${
-                  test.id ? test.id : test?._doc?.id
-                }`}</Typography>
-              </Box>
-            ))}
-            <Box>
-              <Typography sx={{ color: getColor(story) }}>{story}</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CheckBoxIcon sx={{ color: "white" }} />
+              <Typography fontWeight={400} color="white" fontSize="1.2rem">
+                Testcases:
+              </Typography>
             </Box>
-          </Box>
+
+            {story == "Accepted" && (
+              <Button
+                sx={{
+                  backgroundColor: "black",
+                  color: "white",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: "#111",
+                  },
+                  fontWeight: "bold",
+                  borderRadius: 5,
+                }}
+                onClick={handleAnalyze}
+              >
+                Analyze
+              </Button>
+            )}
+          </Paper>
+
+          {loading ? (
+            <SubmitAnimation />
+          ) : (
+            <Box>
+              <Box display={"flex"} gap={3} mt={3}>
+                {firstThree?.map((test) => (
+                  <Box
+                    key={test.id ? test.id : test?._doc?.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      color: getColor(test.status),
+                    }}
+                  >
+                    <TaskAltRoundedIcon />
+                    <Typography>{`Case ${
+                      test.id ? test.id : test?._doc?.id
+                    }`}</Typography>
+                  </Box>
+                ))}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography sx={{ color: getColor(story) }}>
+                    {story}
+                  </Typography>
+                </Box>
+              </Box>
+              <SyntaxHighlighter
+                language="cpp"
+                style={atomOneLight}
+                showLineNumbers
+                // wrapLongLines
+                customStyle={{
+                  maxHeight: "300px",
+                  overflowX: "auto", 
+                  overflowY: "auto",
+                  scrollbarWidth: "none", 
+                  msOverflowStyle: "none",
+                }}
+                className="hide-scrollbar"
+              >
+                {response}
+              </SyntaxHighlighter>
+            </Box>
+          )}
         </Box>
       </Split>
     </div>
