@@ -3,7 +3,7 @@
     "@google/genai": "^1.5.1",
     "axios": "^1.8.4",
     "base-64": "^1.0.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -18,7 +18,7 @@
   },
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon app.js",

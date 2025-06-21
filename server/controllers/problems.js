@@ -2,7 +2,6 @@ import axios from "axios";
 // import problems from "../fakeData/problems.js";
 import { Problem } from "../models/problems.js";
 import { User } from "../models/user.js";
-import { model } from "mongoose";
 import { GoogleGenAI } from "@google/genai";
 
 const encodeBase64 = (str) => {
